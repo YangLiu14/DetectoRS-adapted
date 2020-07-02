@@ -85,53 +85,53 @@ model = dict(
                 type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
             loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0))
     ],
-    mask_roi_extractor=dict(
-        type='SingleRoIExtractor',
-        roi_layer=dict(type='RoIAlign', out_size=14, sample_num=2),
-        out_channels=256,
-        featmap_strides=[4, 8, 16, 32]),
-    mask_head=[
-        dict(
-            type='HTCMaskHead',
-            with_conv_res=False,
-            num_convs=4,
-            in_channels=256,
-            conv_out_channels=256,
-            num_classes=81,
-            loss_mask=dict(
-                type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
-        dict(
-            type='HTCMaskHead',
-            num_convs=4,
-            in_channels=256,
-            conv_out_channels=256,
-            num_classes=81,
-            loss_mask=dict(
-                type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
-        dict(
-            type='HTCMaskHead',
-            num_convs=4,
-            in_channels=256,
-            conv_out_channels=256,
-            num_classes=81,
-            loss_mask=dict(
-                type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))
-    ],
-    semantic_roi_extractor=dict(
-        type='SingleRoIExtractor',
-        roi_layer=dict(type='RoIAlign', out_size=14, sample_num=2),
-        out_channels=256,
-        featmap_strides=[8]),
-    semantic_head=dict(
-        type='FusedSemanticHead',
-        num_ins=5,
-        fusion_level=1,
-        num_convs=4,
-        in_channels=256,
-        conv_out_channels=256,
-        num_classes=183,
-        ignore_label=255,
-        loss_weight=0.2))
+    # mask_roi_extractor=dict(
+    #     type='SingleRoIExtractor',
+    #     roi_layer=dict(type='RoIAlign', out_size=14, sample_num=2),
+    #     out_channels=256,
+    #     featmap_strides=[4, 8, 16, 32]),
+    # mask_head=[
+    #     dict(
+    #         type='HTCMaskHead',
+    #         with_conv_res=False,
+    #         num_convs=4,
+    #         in_channels=256,
+    #         conv_out_channels=256,
+    #         num_classes=81,
+    #         loss_mask=dict(
+    #             type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
+    #     dict(
+    #         type='HTCMaskHead',
+    #         num_convs=4,
+    #         in_channels=256,
+    #         conv_out_channels=256,
+    #         num_classes=81,
+    #         loss_mask=dict(
+    #             type='CrossEntropyLoss', use_mask=True, loss_weight=1.0)),
+    #     dict(
+    #         type='HTCMaskHead',
+    #         num_convs=4,
+    #         in_channels=256,
+    #         conv_out_channels=256,
+    #         num_classes=81,
+    #         loss_mask=dict(
+    #             type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))
+    # ],
+    # semantic_roi_extractor=dict(
+    #     type='SingleRoIExtractor',
+    #     roi_layer=dict(type='RoIAlign', out_size=14, sample_num=2),
+    #     out_channels=256,
+    #     featmap_strides=[8]),
+    # semantic_head=dict(
+    #     type='FusedSemanticHead',
+    #     num_ins=5,
+    #     fusion_level=1,
+    #     num_convs=4,
+    #     in_channels=256,
+    #     conv_out_channels=256,
+    #     num_classes=183,
+    #     ignore_label=255,
+    #     loss_weight=0.2))
 # model training and testing settings
 train_cfg = dict(
     rpn=dict(
@@ -262,25 +262,32 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=1,
+    imgs_per_gpu=8,
     workers_per_gpu=1,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_train2017.json',
-        img_prefix=data_root + 'train2017/',
-        seg_prefix=data_root + 'stuffthingmaps/train2017/',
+        # ann_file=data_root + 'annotations/instances_train2017.json',
+        ann_file=data_root + 'coco_format/instances_train_correct.json',
+        # img_prefix=data_root + 'train2017/',
+        img_prefix=data_root + 'train/',
+        # seg_prefix=data_root + 'stuffthingmaps/train2017/',
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_val2017.json',
-        img_prefix=data_root + 'val2017/',
+        # ann_file=data_root + 'annotations/instances_val2017.json',
+        ann_file=data_root + 'coco_format/instances_val_correct.json',
+        # img_prefix=data_root + 'val2017/',
+        img_prefix=data_root + 'train/',
         pipeline=test_pipeline),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_val2017.json',
-        img_prefix=data_root + 'val2017/',
+        # ann_file=data_root + 'annotations/instances_val2017.json',
+        ann_file=data_root + 'coco_format/instances_val_correct.json',
+        # img_prefix=data_root + 'val2017/',
+        img_prefix=data_root + 'train/',
         pipeline=test_pipeline))
-evaluation = dict(interval=1, metric=['bbox', 'segm'])
+# evaluation = dict(interval=1, metric=['bbox', 'segm'])
+evaluation = dict(interval=1, metric=['bbox'])
 # optimizer
 optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
@@ -290,7 +297,8 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[36, 39])
+    # step=[36, 39])
+    step=[10, 36, 39])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
